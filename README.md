@@ -25,8 +25,16 @@ system_prompt = (
     "At the end of each answer, cite the source document and page number from the metadata."
 )
 
+## Adding Live Website input
+- WebBaseLoader
+    - Extra noise from website elements (headers, navigation, etc.)
+
 
 # What Could Be Improved
 - Add more documents
 - Address other document formats
 - Add a UI element
+
+## TO DO -------------##
+1) Clean up the Load step
+2) Re-do tests in Steps 4 - 6

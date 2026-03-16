@@ -10,3 +10,6 @@ openai>=1.0.0
 numpy>=1.24.0
 jupyter>=1.0.0
 ipython>=8.0.0
+unstructured
+beautifulsoup4
+lxml
