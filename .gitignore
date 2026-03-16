@@ -1,2 +1,5 @@
 venv/
 .env
+
+# demo notebook from class
+rag_vector_databases_live_session.ipynb
