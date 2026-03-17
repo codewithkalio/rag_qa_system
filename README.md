@@ -11,6 +11,7 @@ Fix: Switched to concepts with fewer instances in the article.
 
 ## Chunk Size Decision
 Chunk sizes of 500 and 800 were tested.  There was little difference in the outcome.  Chunk size 800 was chosen since it helped contain the header/footer on the first page so it could be excluded.  
+- "The question "how is a hopper used" brought back unrelated chunks.  This is a specialized thing, which the model may not have reference points for". 
 
 ## Adjusting System Prompt to Specifically Answer Questions Using the Reference Material
 Initial prompt was too generic resulting in the model embellishing with accurate but tangental information that did not directly answer the question.
@@ -28,6 +29,11 @@ system_prompt = (
 ## Adding Live Website input
 - WebBaseLoader
     - Extra noise from website elements (headers, navigation, etc.)
+
+## Exporting a Webpage as a PDF
+- First issue was that there was header and footer and nav noise
+- Tried copying and pasting the website text into a Google Doc and then exporting to a PDF.  Formatting was completely broken.  
+- Lesson learned:  Avoid using content from webpages.  Lean heavily on custom formatted documents.  
 
 
 # What Could Be Improved
