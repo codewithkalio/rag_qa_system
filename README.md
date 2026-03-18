@@ -1,46 +1,36 @@
-# Observations
+# RAG Q&A System — Observations
 
-## Documentation of Failures
-1. Initial testing was done on a long, wordy book.  This was too challenging to fact check.  Switched to an easier document.  
+## Data
 
-2.  First chunk of the PDF contains website header and footer information (PDF was generated from a website.)
-Fix:  added 'chunks = chunks[1:]  # Skip the first chunk (nav/header noise)' after splitting.  
+Three CrossFit documents loaded from different formats: a live web article (WebBaseLoader), a PDF (PyPDFLoader), and an ODT file (UnstructuredODTLoader). Topic chosen because the content is factual, verifiable, and domain-specific enough to make retrieval failures obvious.
 
-3.  Testing using concepts that are found throughout the document made it difficult to verify.  
-Fix: Switched to concepts with fewer instances in the article.  
+## What Worked
 
-## Chunk Size Decision
-Chunk sizes of 500 and 800 were tested.  There was little difference in the outcome.  Chunk size 800 was chosen since it helped contain the header/footer on the first page so it could be excluded.  
-- "The question "how is a hopper used" brought back unrelated chunks.  This is a specialized thing, which the model may not have reference points for". 
+### Chunk size 800
+Preserved complete thoughts across multi-sentence answers. Questions like "What is the coach responsible for?" span several consecutive sentences — smaller chunks (tested at 500) risk splitting the answer mid-thought, leaving the LLM with incomplete context.
 
-## Adjusting System Prompt to Specifically Answer Questions Using the Reference Material
-Initial prompt was too generic resulting in the model embellishing with accurate but tangental information that did not directly answer the question.
+### EnsembleRetriever (BM25 + vector similarity) 
+Improved retrieval for both conceptual and keyword-specific questions. BM25 weight was set higher than the default (0.6 vs 0.4 vector) after finding that niche terms like "hopper" were missed by vector search alone — the embedding space has no semantic neighbors for CrossFit-specific vocabulary.
 
-system_prompt = (
-    "You are a helpful assistant that answers questions using a document retrieval tool."
-    "Always call the retrieval tool before answering — never rely on your own knowledge."
-    "Base your answer only on the retrieved content."
-    "Answer only what is directly asked. Do not include related but unrequested information."
-    "If the retrieved content does not contain enough information to answer the question, say so clearly — do not guess."
-    "Keep answers concise and specific. "
-    "At the end of each answer, cite the source document and page number from the metadata."
-)
+### Tight system prompt
+Reduced hallucination. An early version produced answers that were accurate but tangential. Adding explicit constraints ("answer only what is directly asked," "do not rely on your own knowledge") brought responses in line with the source material.
 
-## Adding Live Website input
-- WebBaseLoader
-    - Extra noise from website elements (headers, navigation, etc.)
+## What Didn't Work
 
-## Exporting a Webpage as a PDF
-- First issue was that there was header and footer and nav noise
-- Tried copying and pasting the website text into a Google Doc and then exporting to a PDF.  Formatting was completely broken.  
-- Lesson learned:  Avoid using content from webpages.  Lean heavily on custom formatted documents.  
+### Live web scraping is unreliable
+WebBaseLoader fetches the page on every run. If the page content changes between runs, chunk boundaries shift and retrieval results change — even with identical code. Lesson: save web content locally and load it as a file.
 
+### Vector search fails on niche keywords 
+"What is a hopper used for?" returned irrelevant chunks under the default 70/30 vector/BM25 weighting because "hopper" has no semantic neighbors in the embedding space. Fix: raise BM25 weight and increase k to widen the candidate pool.
 
-# What Could Be Improved
-- Add more documents
-- Address other document formats
-- Add a UI element
+### Broad test questions are hard to evaluate
+Early test questions covered concepts that appeared throughout the documents, making it difficult to verify whether the right chunk was retrieved. Switching to questions with fewer, more specific mentions made retrieval quality easier to assess.
 
-## TO DO -------------##
-1) Clean up the Load step
-2) Re-do tests in Steps 4 - 6
+## What I'd Improve
+
+- Save the web article as a local file to make runs reproducible
+- Add metadata (section headings, page numbers) to chunks for filtered retrieval
+- Test a re-ranker on top of the ensemble to handle query-type mismatch between vector and keyword search
+- Add a simple UI (Streamlit) for interactive testing
+- Dive deeper into Eval methodology.  Manually comparing results becomes cumbersome when iterating.  
+
