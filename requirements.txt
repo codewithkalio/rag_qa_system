@@ -13,3 +13,4 @@ ipython>=8.0.0
 unstructured
 beautifulsoup4
 lxml
+rank-bm25
